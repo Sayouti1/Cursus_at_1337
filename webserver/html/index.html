@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webserver Test Suite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .nav {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(45deg, #10ac84, #00d2d3);
+        }
+
+        .page {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .response-area {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            min-height: 200px;
+            border: none;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .flex-row .form-group {
+            flex: 1;
+        }
+
+        .home-content {
+            text-align: center;
+            line-height: 1.8;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-success {
+            background: #27ae60;
+        }
+
+        .status-error {
+            background: #e74c3c;
+        }
+
+        .status-pending {
+            background: #f39c12;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <nav class="nav">
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showPage('home')">🏠 Home</button>
+                <button class="nav-btn" onclick="showPage('requests')">🔧 Test Requests</button>
+            </div>
+        </nav>
+
+        <!-- Home Page -->
+        <div id="home" class="page active">
+            <h1>🚀 Webserver Test Suite</h1>
+            <div class="home-content">
+                <p style="font-size: 1.2em; margin-bottom: 30px;">
+                    Welcome to your comprehensive webserver testing toolkit! This suite provides everything you need to
+                    thoroughly test your webserver's functionality.
+                </p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3 style="margin-bottom: 15px;">🔧 HTTP Requests Testing</h3>
+                        <p>Test GET, POST, and DELETE requests with custom data, file uploads, and real-time response
+                            monitoring.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Requests Page -->
+        <div id="requests" class="page">
+            <h1>🔧 HTTP Requests Testing</h1>
+
+            <div class="test-section">
+                <h2>GET Request Test</h2>
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label for="getUrl">URL:</label>
+                        <input type="text" id="getUrl" placeholder="http://localhost:8080/api/data"
+                            value="http://localhost:9090/">
+                    </div>
+                    <div class="form-group">
+                        <button onclick="sendGetRequest()">Send GET Request</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-section">
+                <h2>POST Request Test</h2>
+                <div class="form-group">
+                    <label for="postUrl">URL:</label>
+                    <input type="text" id="postUrl" placeholder="http://localhost:8080/upload"
+                        value="http://localhost:9090/upload">
+                </div>
+                <div class="form-group">
+                    <label for="postType">File upload :</label>
+                    <select id="postType">
+                        <option value="file">File Upload</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="fileInput">
+                    <label for="fileData">Select File:</label>
+                    <input type="file" id="fileData">
+                </div>
+                <button onclick="sendPostRequest()">Send POST Request</button>
+            </div>
+
+            <div class="test-section">
+                <h2>DELETE Request Test</h2>
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label for="deleteUrl">URL:</label>
+                        <input type="text" id="deleteUrl" placeholder="http://localhost:8080/api/delete/123"
+                            value="http://localhost:8080/">
+                    </div>
+                    <div class="form-group">
+                        <button onclick="sendDeleteRequest()">Send DELETE Request</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-section">
+                <h2>Response</h2>
+                <div id="requestStatus" style="margin-bottom: 15px; font-weight: 600;"></div>
+                <textarea id="requestResponse" class="response-area" readonly
+                    placeholder="Response will appear here..."></textarea>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // Remove active class from all nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        function updateStatus(elementId, message, type = 'pending') {
+            const statusElement = document.getElementById(elementId);
+            const indicator = `<span class="status-indicator status-${type}"></span>`;
+            statusElement.innerHTML = indicator + message;
+        }
+
+        async function sendGetRequest() {
+            const url = document.getElementById('getUrl').value;
+            const responseArea = document.getElementById('requestResponse');
+
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            updateStatus('requestStatus', 'Sending GET request...', 'pending');
+            responseArea.value = 'Loading...';
+
+            try {
+                const startTime = Date.now();
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json, text/plain, */*'
+                    }
+                });
+                const endTime = Date.now();
+
+                const responseText = await response.text();
+                const responseData = {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries()),
+                    responseTime: `${endTime - startTime}ms`,
+                    body: (response.headers.get('Content-Type')?.includes('text/') ||
+                        response.headers.get('Content-Type')?.includes('application/json'))
+                        ? responseText
+                        : "It's a file!"
+                };
+
+                updateStatus('requestStatus', `GET Request completed - Status: ${response.status}`, response.ok ? 'success' : 'error');
+                responseArea.value = JSON.stringify(responseData, null, 2);
+            } catch (error) {
+                updateStatus('requestStatus', `GET Request failed: ${error.message}`, 'error');
+                responseArea.value = `Error: ${error.message}`;
+            }
+        }
+
+        async function sendPostRequest() {
+            const url = document.getElementById('postUrl').value;
+            const type = document.getElementById('postType').value;
+            const responseArea = document.getElementById('requestResponse');
+
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            let body, headers = {};
+
+            try {
+                if (type === 'file') {
+                    const fileInput = document.getElementById('fileData');
+                    if (!fileInput.files[0]) {
+                        alert('Please select a file');
+                        return;
+                    }
+
+                    const file = fileInput.files[0];
+                    body = file;
+
+                    // Set standard Content-Type
+                    headers['Content-Type'] = file.type || 'application/octet-stream';
+
+                    // Add custom X-Filename header
+                    headers['X-Filename'] = file.name;
+                }
+
+                updateStatus('requestStatus', 'Sending POST request...', 'pending');
+                responseArea.value = 'Loading...';
+
+                const startTime = Date.now();
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: headers,
+                    body: body
+                });
+                const endTime = Date.now();
+
+                const responseText = await response.text();
+                const responseData = {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries()),
+                    responseTime: `${endTime - startTime}ms`,
+                    body: responseText
+                };
+
+                updateStatus('requestStatus', `POST Request completed - Status: ${response.status}`, response.ok ? 'success' : 'error');
+                responseArea.value = JSON.stringify(responseData, null, 2);
+            } catch (error) {
+                updateStatus('requestStatus', `POST Request failed: ${error.message}`, 'error');
+                responseArea.value = `Error: ${error.message}`;
+            }
+        }
+
+
+        async function sendDeleteRequest() {
+            const url = document.getElementById('deleteUrl').value;
+            const responseArea = document.getElementById('requestResponse');
+
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            updateStatus('requestStatus', 'Sending DELETE request...', 'pending');
+            responseArea.value = 'Loading...';
+
+            try {
+                const startTime = Date.now();
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json, text/plain, */*'
+                    }
+                });
+                const endTime = Date.now();
+
+                const responseText = await response.text();
+                const responseData = {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries()),
+                    responseTime: `${endTime - startTime}ms`,
+                    body: responseText
+                };
+
+                updateStatus('requestStatus', `DELETE Request completed - Status: ${response.status}`, response.ok ? 'success' : 'error');
+                responseArea.value = JSON.stringify(responseData, null, 2);
+            } catch (error) {
+                updateStatus('requestStatus', `DELETE Request failed: ${error.message}`, 'error');
+                responseArea.value = `Error: ${error.message}`;
+            }
+        }
+
+    </script>
+</body>
+
+</html>

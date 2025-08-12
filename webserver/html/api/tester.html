@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP Request Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .request-section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #response {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-height: 100px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+        }
+
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>HTTP Request Tester</h1>
+
+    <div class="request-section">
+        <h2>GET Request</h2>
+        <label for="get-url">URL:</label>
+        <input type="text" id="get-url" placeholder="/api/resource">
+        <label for="get-params">Query Parameters (JSON):</label>
+        <textarea id="get-params" rows="3" placeholder='{"param1": "value1", "param2": "value2"}'></textarea>
+        <button onclick="sendGetRequest()">Send GET Request</button>
+    </div>
+
+    <div class="request-section">
+        <h2>POST Request</h2>
+        <label for="post-url">URL:</label>
+        <input type="text" id="post-url" placeholder="/api/resource">
+        <label for="post-data">Request Body (JSON):</label>
+        <textarea id="post-data" rows="5" placeholder='{"key1": "value1", "key2": "value2"}'></textarea>
+        <label for="post-file">Try a File</label>
+        <input type="file" id="post-file">
+        <button onclick="sendPostRequest()">Send POST Request</button>
+    </div>
+
+    <div class="request-section">
+        <h2>DELETE Request</h2>
+        <label for="delete-url">URL:</label>
+        <input type="text" id="delete-url" placeholder="/api/resource/123">
+        <button onclick="sendDeleteRequest()" class="delete-btn">Send DELETE Request</button>
+    </div>
+
+    <h2>Response</h2>
+    <div id="response">Response will appear here...</div>
+
+    <script>
+        function displayResponse(data) {
+            const responseDiv = document.getElementById('response');
+            try {
+                // Try to pretty-print JSON
+                responseDiv.textContent = JSON.stringify(JSON.parse(data), null, 2);
+            } catch (e) {
+                // If not JSON, display as-is
+                responseDiv.textContent = data;
+            }
+        }
+
+        function sendGetRequest() {
+            const url = document.getElementById('get-url').value;
+            const params = document.getElementById('get-params').value;
+
+            let fullUrl = url;
+            if (params) {
+                try {
+                    const paramsObj = JSON.parse(params);
+                    const queryString = new URLSearchParams(paramsObj).toString();
+                    fullUrl += (url.includes('?') ? '&' : '?') + queryString;
+                } catch (e) {
+                    displayResponse('Error parsing query parameters: ' + e.message);
+                    return;
+                }
+            }
+
+            fetch(fullUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(data => displayResponse(data))
+                .catch(error => displayResponse('Error: ' + error.message));
+        }
+
+
+        function sendPostRequest() {
+            const url = document.getElementById('post-url').value;
+            const postData = document.getElementById('post-data').value;
+            const fileInput = document.getElementById('post-file');
+            const file = fileInput.files[0];
+
+            const formData = new FormData();
+
+            // Try to parse and append JSON data if available
+            if (postData) {
+                try {
+                    const jsonData = JSON.parse(postData);
+                    for (const key in jsonData) {
+                        if (jsonData.hasOwnProperty(key)) {
+                            formData.append(key, jsonData[key]);
+                        }
+                    }
+                } catch (e) {
+                    displayResponse('Error parsing JSON: ' + e.message);
+                    return;
+                }
+            }
+
+            // Append file if selected
+            if (file) {
+                formData.append('file', file); // 'file' is the field name the server will receive
+            }
+
+            fetch(url, {
+                method: 'POST',
+                body: formData
+                // No need to set Content-Type; browser will automatically set to multipart/form-data
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(data => displayResponse(data))
+                .catch(error => displayResponse('Error: ' + error.message));
+        }
+    
+        function sendDeleteRequest() {
+            const url = document.getElementById('delete-url').value;
+
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(data => displayResponse(data))
+                .catch(error => displayResponse('Error: ' + error.message));
+        }
+    </script>
+</body>
+
+</html>
