@@ -1,5 +1,6 @@
 # Cursus_at_1337
 <img src="img/login-screen.jpg">
+
 # 1337 Cursus Projects
 
 This repository contains some of my projects from the 1337 school cursus (42 Network). Each project represents a step in the learning journey, building fundamental programming skills in C and system programming concepts.
