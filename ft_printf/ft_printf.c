@@ -41,7 +41,7 @@ int	ft_printf(const char *format, ...)
 	i = 0;
 	va_start(ap, format);
 	count = 0;
-	while (format[i])
+	while (format && format[i])
 	{
 		if (format[i] == '%')
 			count += ft_helper(format[++i], ap);
